@@ -21,9 +21,10 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
-    command: npm run dev
+    command: sh -c "npm run migrate-and-dev"
 
   postgres:
     image: postgres:14-alpine
@@ -36,9 +37,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./migrations/init.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./migrations/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   frontend:
     build:

@@ -14,5 +14,5 @@ COPY . .
 # Expose port
 EXPOSE 3000
 
-# Start command
-CMD ["npm", "start"]
+# Command to run migrations and start the app
+CMD ["npm", "run", "migrate-and-start"]
