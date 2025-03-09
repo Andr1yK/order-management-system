@@ -143,21 +143,23 @@ const findById = async (id) => {
 const findAll = async (filters = {}, limit = 10, offset = 0) => {
   const { user_id, status } = filters;
 
-  let whereClause = '';
+  let conditions = [];
   const values = [];
-  let valueIndex = 1;
+  let paramIndex = 1;
 
   if (user_id) {
-    whereClause += `WHERE o.user_id = ${valueIndex}`;
+    conditions.push(`o.user_id = $${paramIndex}`);
     values.push(user_id);
-    valueIndex++;
+    paramIndex++;
   }
 
   if (status) {
-    whereClause += whereClause ? ` AND o.status = ${valueIndex}` : `WHERE o.status = ${valueIndex}`;
+    conditions.push(`o.status = $${paramIndex}`);
     values.push(status);
-    valueIndex++;
+    paramIndex++;
   }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
   // Add limit and offset
   values.push(limit);
@@ -170,7 +172,7 @@ const findAll = async (filters = {}, limit = 10, offset = 0) => {
     JOIN users u ON o.user_id = u.id
     ${whereClause}
     ORDER BY o.created_at DESC
-    LIMIT ${valueIndex} OFFSET ${valueIndex + 1}
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
   `;
 
   const orderResult = await query(orderSQL, values);
@@ -184,9 +186,9 @@ const findAll = async (filters = {}, limit = 10, offset = 0) => {
 
   // Get all items for these orders
   const itemsSQL = `
-    SELECT id, order_id, product_name, quantity, price, total
-    FROM order_items
-    WHERE order_id = ANY($1)
+      SELECT id, order_id, product_name, quantity, price, total
+      FROM order_items
+      WHERE order_id = ANY($1)
   `;
 
   const itemsResult = await query(itemsSQL, [orderIds]);
@@ -254,21 +256,23 @@ const remove = async (id) => {
 const count = async (filters = {}) => {
   const { user_id, status } = filters;
 
-  let whereClause = '';
+  let conditions = [];
   const values = [];
-  let valueIndex = 1;
+  let paramIndex = 1;
 
   if (user_id) {
-    whereClause += `WHERE user_id = ${valueIndex}`;
+    conditions.push(`user_id = $${paramIndex}`);
     values.push(user_id);
-    valueIndex++;
+    paramIndex++;
   }
 
   if (status) {
-    whereClause += whereClause ? ` AND status = ${valueIndex}` : `WHERE status = ${valueIndex}`;
+    conditions.push(`status = $${paramIndex}`);
     values.push(status);
-    valueIndex++;
+    paramIndex++;
   }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
   const sql = `SELECT COUNT(*) as total FROM orders ${whereClause}`;
 
