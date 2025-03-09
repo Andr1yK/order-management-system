@@ -1,42 +1,5 @@
 const { query } = require('../config/db');
-
-/**
- * Create tables if they don't exist
- */
-const initializeTables = async () => {
-  // Create orders table
-  const createOrdersTable = `
-    CREATE TABLE IF NOT EXISTS orders (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL,
-      status VARCHAR(20) DEFAULT 'pending',
-      total_amount DECIMAL(10, 2) NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )
-  `;
-
-  // Create order items table
-  const createOrderItemsTable = `
-    CREATE TABLE IF NOT EXISTS order_items (
-      id SERIAL PRIMARY KEY,
-      order_id INTEGER NOT NULL,
-      product_name VARCHAR(100) NOT NULL,
-      quantity INTEGER NOT NULL,
-      price DECIMAL(10, 2) NOT NULL,
-      total DECIMAL(10, 2) NOT NULL,
-      FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
-    )
-  `;
-
-  try {
-    await query(createOrdersTable);
-    await query(createOrderItemsTable);
-  } catch (error) {
-    throw error;
-  }
-};
+const { logger } = require('../utils/logger');
 
 /**
  * Create a new order with items
@@ -82,6 +45,53 @@ const create = async (orderData) => {
 
     // Commit transaction
     await client.query('COMMIT');
+
+    if (process.env.WRITING_TO_NEW_SCHEMA === 'true') {
+      try {
+        await client.query('BEGIN');
+
+        const newOrderSQL = `
+          INSERT INTO orders_schema.orders (id, user_id, status, total_amount, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          ON CONFLICT (id) DO NOTHING
+        `;
+
+        const newOrderValues = [
+          order.id,
+          user_id,
+          status,
+          totalAmount,
+          order.created_at,
+          order.updated_at
+        ];
+
+        await client.query(newOrderSQL, newOrderValues);
+
+        for (const item of items) {
+          const newItemSQL = `
+            INSERT INTO orders_schema.order_items (id, order_id, product_name, quantity, price, total)
+            VALUES (DEFAULT, $1, $2, $3, $4, $5)
+            ON CONFLICT (id) DO NOTHING
+          `;
+
+          const newItemTotal = item.quantity * item.price;
+          const newItemValues = [
+            order.id,
+            item.product_name,
+            item.quantity,
+            item.price,
+            newItemTotal,
+          ];
+
+          await client.query(newItemSQL, newItemValues);
+        }
+
+        await client.query('COMMIT');
+      } catch (error) {
+        await client.query('ROLLBACK');
+        logger.error('Error creating order in new schema', error);
+      }
+    }
 
     // Return complete order with items
     return await findById(order.id);
@@ -231,6 +241,22 @@ const updateStatus = async (id, status) => {
     return null;
   }
 
+  if (process.env.WRITING_TO_NEW_SCHEMA === 'true') {
+    try {
+      const newSql = `
+        UPDATE orders_schema.orders
+        SET status = $1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2
+        RETURNING id, user_id, status, total_amount, created_at, updated_at
+      `;
+
+      await query(newSql, [status, id]);
+    } catch (error) {
+      logger.error('Error updating order status in new schema', error);
+    }
+  }
+
   // Get complete order with items
   return await findById(id);
 };
@@ -245,6 +271,16 @@ const remove = async (id) => {
   const sql = 'DELETE FROM orders WHERE id = $1';
 
   const result = await query(sql, [id]);
+
+  if (process.env.WRITING_TO_NEW_SCHEMA === 'true') {
+    try {
+      const newSql = 'DELETE FROM orders_schema.orders WHERE id = $1';
+      await query(newSql, [id]);
+    } catch (error) {
+      logger.error('Error deleting order in new schema', error);
+    }
+  }
+
   return result.rowCount > 0;
 };
 
@@ -281,7 +317,6 @@ const count = async (filters = {}) => {
 };
 
 module.exports = {
-  initializeTables,
   create,
   findById,
   findAll,
