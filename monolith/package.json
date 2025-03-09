@@ -17,6 +17,7 @@
     "dev:with-db": "npm run migrate && npm run seed && npm run dev"
   },
   "dependencies": {
+    "axios": "^1.8.2",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.12",
     "cors": "^2.8.5",
