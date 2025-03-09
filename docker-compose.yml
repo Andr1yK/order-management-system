@@ -15,6 +15,7 @@ services:
       - DB_SSL=false
       - JWT_SECRET=your_jwt_secret_key
       - JWT_EXPIRATION=24h
+      - SHOULD_USE_USER_SERVICE_SCHEMA=true
     ports:
       - "3000:3000"
     volumes:

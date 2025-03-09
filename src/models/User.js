@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/sequelize');
 
-const User = sequelize.define('User', {
+const attributes = {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -39,11 +39,30 @@ const User = sequelize.define('User', {
       isIn: [['admin', 'customer']]
     }
   }
-}, {
+};
+
+const options = {
   tableName: 'users',
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at'
-});
+}
 
-module.exports = User;
+const User = sequelize.define(
+  'User',
+  attributes,
+  options,
+);
+
+const ServiceUser = sequelize.define(
+  'User',
+  attributes,
+  {
+    ...options,
+    schema: 'user_service_db',
+  },
+);
+
+module.exports = process.env.SHOULD_USE_USER_SERVICE_SCHEMA === 'true'
+  ? ServiceUser
+  : User;
