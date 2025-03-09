@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build: monolith
     container_name: order-management-app
     environment:
       - PORT=3000
@@ -19,7 +19,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - .:/usr/src/app
+      - ./monolith:/usr/src/app
       - /usr/src/app/node_modules
     depends_on:
       postgres:
@@ -47,12 +47,12 @@ services:
 
   frontend:
     build:
-      context: ./client
+      context: ./monolith/client
     container_name: order-management-frontend
     ports:
       - "3001:3000"
     volumes:
-      - ./client:/usr/src/app
+      - ./monolith/client:/usr/src/app
       - /usr/src/app/node_modules
     depends_on:
       - app
