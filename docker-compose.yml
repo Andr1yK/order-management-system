@@ -13,7 +13,6 @@ services:
       - DB_PASSWORD=postgres
       - DB_NAME=order_management
       - DB_SSL=false
-      - WRITING_TO_NEW_SCHEMA=true
       - JWT_SECRET=your_jwt_secret_key
       - JWT_EXPIRATION=24h
     ports:
