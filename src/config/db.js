@@ -88,7 +88,7 @@ function applySchema(text, domain) {
 const query = async (text, params = [], options = {}) => {
   const start = Date.now();
 
-  const domain = options.domain || detectDomain(text);
+  const domain = options?.domain || detectDomain(text);
 
   const modifiedText = applySchema(text, domain);
 

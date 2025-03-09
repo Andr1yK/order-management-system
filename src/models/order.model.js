@@ -46,7 +46,7 @@ const create = async (orderData) => {
     // Commit transaction
     await client.query('COMMIT');
 
-    if (process.env.USE_NEW_SCHEMA === 'true') {
+    if (process.env.WRITING_TO_NEW_SCHEMA === 'true') {
       try {
         await client.query('BEGIN');
 
@@ -241,7 +241,7 @@ const updateStatus = async (id, status) => {
     return null;
   }
 
-  if (process.env.USE_NEW_SCHEMA === 'true') {
+  if (process.env.WRITING_TO_NEW_SCHEMA === 'true') {
     try {
       const newSql = `
         UPDATE orders_schema.orders
@@ -272,7 +272,7 @@ const remove = async (id) => {
 
   const result = await query(sql, [id]);
 
-  if (process.env.USE_NEW_SCHEMA === 'true') {
+  if (process.env.WRITING_TO_NEW_SCHEMA === 'true') {
     try {
       const newSql = 'DELETE FROM orders_schema.orders WHERE id = $1';
       await query(newSql, [id]);

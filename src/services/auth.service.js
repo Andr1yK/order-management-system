@@ -1,6 +1,7 @@
 const userService = require('./user.service');
 const { comparePassword, generateToken } = require('../config/auth');
 const { ApiError } = require('../middlewares/error.middleware');
+const {logger} = require("../utils/logger");
 
 /**
  * Register a new user
@@ -48,8 +49,10 @@ const login = async (email, password) => {
     return { user: userWithoutPassword, token };
   } catch (error) {
     // Hide specific errors for security
+    logger.error(error);
+
     if (error.statusCode === 404) {
-      throw new ApiError(401, 'Invalid credentials');
+      throw new ApiError(401, 'Invalid credentials due to the error');
     }
     throw error;
   }

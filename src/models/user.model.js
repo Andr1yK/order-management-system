@@ -19,7 +19,7 @@ const create = async (userData) => {
 
   const result = await query(sql, values);
 
-  if (process.env.USE_NEW_SCHEMA === 'true') {
+  if (process.env.WRITING_TO_NEW_SCHEMA === 'true') {
     try {
       const newSql = `
           INSERT INTO users_schema.users (id, name, email, password, phone, address, role, created_at, updated_at)
@@ -123,7 +123,7 @@ const update = async (id, userData) => {
 
   const result = await query(sql, values);
 
-  if (process.env.USE_NEW_SCHEMA === 'true') {
+  if (process.env.WRITING_TO_NEW_SCHEMA === 'true') {
     try {
       const newSql = `
           UPDATE users_schema.users
@@ -164,7 +164,7 @@ const updatePassword = async (id, password) => {
 
   const result = await query(sql, [password, id]);
 
-  if (process.env.USE_NEW_SCHEMA === 'true') {
+  if (process.env.WRITING_TO_NEW_SCHEMA === 'true') {
     try {
       const newSql = `
           UPDATE users_schema.users
@@ -192,7 +192,7 @@ const remove = async (id) => {
 
   const result = await query(sql, [id]);
 
-  if (process.env.USE_NEW_SCHEMA === 'true') {
+  if (process.env.WRITING_TO_NEW_SCHEMA === 'true') {
     try {
       const newSql = 'DELETE FROM users_schema.users WHERE id = $1';
       await query(newSql, [id], null);
