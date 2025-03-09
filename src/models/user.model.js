@@ -1,29 +1,5 @@
 const { query } = require('../config/db');
-
-/**
- * Create tables if they don't exist
- */
-const initializeTables = async () => {
-  const createUsersTable = `
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(100) NOT NULL,
-      email VARCHAR(100) UNIQUE NOT NULL,
-      password VARCHAR(100) NOT NULL,
-      phone VARCHAR(20),
-      address TEXT,
-      role VARCHAR(20) DEFAULT 'customer',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `;
-
-  try {
-    await query(createUsersTable);
-  } catch (error) {
-    throw error;
-  }
-};
+const { logger } = require('../utils/logger');
 
 /**
  * Create a new user
@@ -42,6 +18,33 @@ const create = async (userData) => {
   const values = [name, email, password, phone, address, role || 'customer'];
 
   const result = await query(sql, values);
+
+  if (process.env.USE_NEW_SCHEMA === 'true') {
+    try {
+      const newSql = `
+          INSERT INTO users_schema.users (id, name, email, password, phone, address, role, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ON CONFLICT (id) DO NOTHING
+      `;
+
+      const newValues = [
+        result.rows[0].id,
+        name,
+        email,
+        password,
+        phone,
+        address,
+        role || 'customer',
+        result.rows[0].created_at,
+        result.rows[0].updated_at
+      ];
+
+      await query(newSql, newValues, null);
+    } catch (err) {
+      logger.error(`Error creating user in new schema: ${err.message}`);
+    }
+  }
+
   return result.rows[0];
 };
 
@@ -119,6 +122,29 @@ const update = async (id, userData) => {
   const values = [name, email, phone, address, role, id];
 
   const result = await query(sql, values);
+
+  if (process.env.USE_NEW_SCHEMA === 'true') {
+    try {
+      const newSql = `
+          UPDATE users_schema.users
+          SET name = COALESCE($1, name),
+              email = COALESCE($2, email),
+              phone = COALESCE($3, phone),
+              address = COALESCE($4, address),
+              role = COALESCE($5, role),
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = $6
+          RETURNING id, name, email, phone, address, role, created_at, updated_at
+      `;
+
+      const newValues = [name, email, phone, address, role, id];
+
+      await query(newSql, newValues, null);
+    } catch (err) {
+      logger.error(`Error updating user in new schema: ${err.message}`);
+    }
+  }
+
   return result.rows[0] || null;
 };
 
@@ -137,6 +163,22 @@ const updatePassword = async (id, password) => {
   `;
 
   const result = await query(sql, [password, id]);
+
+  if (process.env.USE_NEW_SCHEMA === 'true') {
+    try {
+      const newSql = `
+          UPDATE users_schema.users
+          SET password = $1,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = $2
+      `;
+
+      await query(newSql, [password, id], null);
+    } catch (err) {
+      logger.error(`Error updating user password in new schema: ${err.message}`);
+    }
+  }
+
   return result.rowCount > 0;
 };
 
@@ -149,6 +191,16 @@ const remove = async (id) => {
   const sql = 'DELETE FROM users WHERE id = $1';
 
   const result = await query(sql, [id]);
+
+  if (process.env.USE_NEW_SCHEMA === 'true') {
+    try {
+      const newSql = 'DELETE FROM users_schema.users WHERE id = $1';
+      await query(newSql, [id], null);
+    } catch (err) {
+      logger.error(`Error deleting user in new schema: ${err.message}`);
+    }
+  }
+
   return result.rowCount > 0;
 };
 
@@ -164,7 +216,6 @@ const count = async () => {
 };
 
 module.exports = {
-  initializeTables,
   create,
   findById,
   findByEmail,
