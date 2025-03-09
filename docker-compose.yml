@@ -28,7 +28,7 @@ services:
     command: sh -c "npm run dev:with-db"
 
   user-service:
-    build: user-service
+    build: ./microservices/user-service
     container_name: order-management-user-service
     environment:
       - PORT=3030
@@ -45,7 +45,7 @@ services:
     ports:
       - "3030:3030"
     volumes:
-      - ./user-service:/usr/src/app
+      - ./microservices/user-service:/usr/src/app
       - /usr/src/app/node_modules
     depends_on:
       postgres:
