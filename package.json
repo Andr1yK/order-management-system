@@ -7,12 +7,14 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "jest",
-    "migrate": "node-pg-migrate",
-    "migrate:up": "node-pg-migrate up",
-    "migrate:down": "node-pg-migrate down",
-    "migrate:create": "node-pg-migrate create",
-    "migrate-and-start": "npm run migrate:up && npm run start",
-    "migrate-and-dev": "npm run migrate:up && npm run dev"
+    "migrate": "sequelize db:migrate",
+    "migrate:undo": "sequelize db:migrate:undo",
+    "migrate:new": "sequelize migration:generate --name",
+    "seed": "sequelize db:seed:all",
+    "seed:undo": "sequelize db:seed:undo:all",
+    "seed:new": "sequelize seed:generate --name",
+    "start:with-db": "npm run migrate && npm run seed && npm start",
+    "dev:with-db": "npm run migrate && npm run seed && npm run dev"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -26,6 +28,9 @@
     "morgan": "^1.10.0",
     "node-pg-migrate": "^7.9.1",
     "pg": "^8.13.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.6",
+    "sequelize-cli": "^6.6.2",
     "winston": "^3.3.3"
   },
   "devDependencies": {

@@ -24,7 +24,7 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
-    command: sh -c "npm run migrate-and-dev"
+    command: sh -c "npm run dev:with-db"
 
   postgres:
     image: postgres:14-alpine

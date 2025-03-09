@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 3000
 
 # Command to run migrations and start the app
-CMD ["npm", "run", "migrate-and-start"]
+CMD ["npm", "run", "start:with-db"]

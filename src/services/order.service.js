@@ -1,6 +1,6 @@
-const Order = require('../models/order.model');
-const User = require('../models/user.model');
+const { Order, OrderItem, User } = require('../models');
 const { ApiError } = require('../middlewares/error.middleware');
+const { sequelize } = require('../config/sequelize');
 
 /**
  * Create a new order
@@ -9,10 +9,10 @@ const { ApiError } = require('../middlewares/error.middleware');
  */
 const createOrder = async (orderData) => {
   try {
-    const { user_id, items } = orderData;
+    const { user_id, items, status = 'pending' } = orderData;
 
     // Validate user existence
-    const user = await User.findById(user_id);
+    const user = await User.findByPk(user_id);
 
     if (!user) {
       throw new ApiError(404, 'User not found');
@@ -38,31 +38,81 @@ const createOrder = async (orderData) => {
       }
     });
 
-    // Create order
-    const order = await Order.create(orderData);
+    // Calculate total amount from items
+    const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
 
-    return order;
+    // Create order within a transaction
+    const result = await sequelize.transaction(async (t) => {
+      // Insert order
+      const order = await Order.create({
+        user_id,
+        status,
+        total_amount: totalAmount
+      }, { transaction: t });
+
+      // Insert order items
+      const orderItems = await Promise.all(
+        items.map(item => {
+          const itemTotal = item.quantity * item.price;
+          return OrderItem.create({
+            order_id: order.id,
+            product_name: item.product_name,
+            quantity: item.quantity,
+            price: item.price,
+            total: itemTotal
+          }, { transaction: t });
+        })
+      );
+
+      return { order, orderItems };
+    });
+
+    // Return complete order with items
+    return await getOrderById(result.order.id);
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, error.message);
   }
 };
 
 /**
- * Get an order by ID
+ * Get an order by ID with all items
  * @param {number} id - Order ID
  * @returns {Promise<Object>} - Order object
  */
 const getOrderById = async (id) => {
   try {
-    const order = await Order.findById(id);
+    const order = await Order.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email']
+        },
+        {
+          model: OrderItem,
+          as: 'items'
+        }
+      ]
+    });
 
     if (!order) {
       throw new ApiError(404, 'Order not found');
     }
 
-    return order;
+    // Format response
+    const formattedOrder = order.toJSON();
+    formattedOrder.user_name = order.user.name;
+    formattedOrder.user_email = order.user.email;
+
+    return formattedOrder;
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, error.message);
   }
 };
 
@@ -76,21 +126,49 @@ const getOrderById = async (id) => {
 const getAllOrders = async (filters = {}, page = 1, limit = 10) => {
   try {
     const offset = (page - 1) * limit;
+    const where = {};
 
-    const orders = await Order.findAll(filters, limit, offset);
-    const totalOrders = await Order.count(filters);
+    // Apply filters
+    if (filters.status) where.status = filters.status;
+    if (filters.user_id) where.user_id = filters.user_id;
+
+    const { count, rows } = await Order.findAndCountAll({
+      where,
+      limit,
+      offset,
+      order: [['created_at', 'DESC']],
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email']
+        },
+        {
+          model: OrderItem,
+          as: 'items'
+        }
+      ]
+    });
+
+    // Format response
+    const orders = rows.map(order => {
+      const formattedOrder = order.toJSON();
+      formattedOrder.user_name = order.user.name;
+      formattedOrder.user_email = order.user.email;
+      return formattedOrder;
+    });
 
     return {
       orders,
       pagination: {
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
-        totalItems: totalOrders,
-        totalPages: Math.ceil(totalOrders / limit)
+        totalItems: count,
+        totalPages: Math.ceil(count / limit)
       }
     };
   } catch (error) {
-    throw error;
+    throw new ApiError(500, error.message);
   }
 };
 
@@ -104,7 +182,7 @@ const getAllOrders = async (filters = {}, page = 1, limit = 10) => {
 const getUserOrders = async (userId, page = 1, limit = 10) => {
   try {
     // Check if user exists
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
 
     if (!user) {
       throw new ApiError(404, 'User not found');
@@ -113,7 +191,10 @@ const getUserOrders = async (userId, page = 1, limit = 10) => {
     // Get user orders
     return await getAllOrders({ user_id: userId }, page, limit);
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, error.message);
   }
 };
 
@@ -126,7 +207,7 @@ const getUserOrders = async (userId, page = 1, limit = 10) => {
 const updateOrderStatus = async (id, status) => {
   try {
     // Check if order exists
-    const order = await Order.findById(id);
+    const order = await Order.findByPk(id);
 
     if (!order) {
       throw new ApiError(404, 'Order not found');
@@ -140,11 +221,15 @@ const updateOrderStatus = async (id, status) => {
     }
 
     // Update order status
-    const updatedOrder = await Order.updateStatus(id, status);
+    await order.update({ status });
 
-    return updatedOrder;
+    // Get updated order with items
+    return await getOrderById(id);
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, error.message);
   }
 };
 
@@ -156,18 +241,21 @@ const updateOrderStatus = async (id, status) => {
 const deleteOrder = async (id) => {
   try {
     // Check if order exists
-    const order = await Order.findById(id);
+    const order = await Order.findByPk(id);
 
     if (!order) {
       throw new ApiError(404, 'Order not found');
     }
 
-    // Delete order
-    await Order.remove(id);
+    // Delete order (cascades to items)
+    await order.destroy();
 
     return true;
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, error.message);
   }
 };
 

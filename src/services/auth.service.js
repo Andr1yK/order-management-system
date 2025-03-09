@@ -43,9 +43,10 @@ const login = async (email, password) => {
     const token = generateToken({ id: user.id, email: user.email, role: user.role });
 
     // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    const userResponse = user.toJSON();
+    delete userResponse.password;
 
-    return { user: userWithoutPassword, token };
+    return { user: userResponse, token };
   } catch (error) {
     // Hide specific errors for security
     if (error.statusCode === 404) {
