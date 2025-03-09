@@ -2,9 +2,9 @@
 -- Password is 'password123' hashed with bcrypt
 INSERT INTO users (name, email, password, phone, address, role)
 VALUES
-    ('Admin User', 'admin@example.com', '$2a$10$CwTycUXWue0Thq9StjUM0uQxTmJ7WsZUVS6P.xpHQ3qPmJbOEwvqm', '1234567890', '123 Admin St', 'admin'),
-    ('John Smith', 'john@example.com', '$2a$10$CwTycUXWue0Thq9StjUM0uQxTmJ7WsZUVS6P.xpHQ3qPmJbOEwvqm', '0987654321', '456 Customer Ave', 'customer'),
-    ('Jane Doe', 'jane@example.com', '$2a$10$CwTycUXWue0Thq9StjUM0uQxTmJ7WsZUVS6P.xpHQ3qPmJbOEwvqm', '5551234567', '789 User Blvd', 'customer');
+    ('Admin User', 'admin@example.com', '$2a$10$vcR2CLsGbkSQu1w7ls4RY.UCQH528jNDna6tOJlbg5t9/jM0Zq1ta', '1234567890', '123 Admin St', 'admin'),
+    ('John Smith', 'john@example.com', '$2a$10$vcR2CLsGbkSQu1w7ls4RY.UCQH528jNDna6tOJlbg5t9/jM0Zq1ta', '0987654321', '456 Customer Ave', 'customer'),
+    ('Jane Doe', 'jane@example.com', '$2a$10$vcR2CLsGbkSQu1w7ls4RY.UCQH528jNDna6tOJlbg5t9/jM0Zq1ta', '5551234567', '789 User Blvd', 'customer');
 
 -- Insert test orders
 INSERT INTO orders (user_id, status, total_amount)
