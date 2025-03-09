@@ -1,6 +1,7 @@
 const app = require('./app');
 const { logger } = require('./utils/logger');
-const { connectDB } = require('./config/db');
+const { connectDB } = require('./config/sequelize');
+const { initializeTables } = require('./models');
 
 // Get port from environment or use default
 const PORT = process.env.PORT || 3000;
@@ -11,6 +12,10 @@ async function startServer() {
     // Connect to database
     await connectDB();
     logger.info('Database connection established');
+
+    // Initialize database tables
+    await initializeTables();
+    logger.info('Database tables initialized');
 
     // Start the server
     app.listen(PORT, () => {

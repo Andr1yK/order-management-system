@@ -1,6 +1,7 @@
-const User = require('../models/user.model');
+const { User } = require('../models');
 const { hashPassword } = require('../config/auth');
 const { ApiError } = require('../middlewares/error.middleware');
+const { Op } = require('sequelize');
 
 /**
  * Create a new user
@@ -10,7 +11,9 @@ const { ApiError } = require('../middlewares/error.middleware');
 const createUser = async (userData) => {
   try {
     // Check if user with same email already exists
-    const existingUser = await User.findByEmail(userData.email);
+    const existingUser = await User.findOne({
+      where: { email: userData.email }
+    });
 
     if (existingUser) {
       throw new ApiError(409, 'Email is already in use');
@@ -25,9 +28,16 @@ const createUser = async (userData) => {
       password: hashedPassword
     });
 
-    return user;
+    // Remove password from response
+    const userResponse = user.toJSON();
+    delete userResponse.password;
+
+    return userResponse;
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, error.message);
   }
 };
 
@@ -38,7 +48,9 @@ const createUser = async (userData) => {
  */
 const getUserById = async (id) => {
   try {
-    const user = await User.findById(id);
+    const user = await User.findByPk(id, {
+      attributes: { exclude: ['password'] }
+    });
 
     if (!user) {
       throw new ApiError(404, 'User not found');
@@ -46,7 +58,10 @@ const getUserById = async (id) => {
 
     return user;
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, error.message);
   }
 };
 
@@ -57,7 +72,9 @@ const getUserById = async (id) => {
  */
 const getUserByEmail = async (email) => {
   try {
-    const user = await User.findByEmail(email);
+    const user = await User.findOne({
+      where: { email }
+    });
 
     if (!user) {
       throw new ApiError(404, 'User not found');
@@ -65,7 +82,10 @@ const getUserByEmail = async (email) => {
 
     return user;
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, error.message);
   }
 };
 
@@ -79,20 +99,24 @@ const getAllUsers = async (page = 1, limit = 10) => {
   try {
     const offset = (page - 1) * limit;
 
-    const users = await User.findAll(limit, offset);
-    const totalUsers = await User.count();
+    const { count, rows } = await User.findAndCountAll({
+      attributes: { exclude: ['password'] },
+      limit,
+      offset,
+      order: [['created_at', 'DESC']]
+    });
 
     return {
-      users,
+      users: rows,
       pagination: {
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
-        totalItems: totalUsers,
-        totalPages: Math.ceil(totalUsers / limit)
+        totalItems: count,
+        totalPages: Math.ceil(count / limit)
       }
     };
   } catch (error) {
-    throw error;
+    throw new ApiError(500, error.message);
   }
 };
 
@@ -105,7 +129,7 @@ const getAllUsers = async (page = 1, limit = 10) => {
 const updateUser = async (id, userData) => {
   try {
     // Check if user exists
-    const existingUser = await User.findById(id);
+    const existingUser = await User.findByPk(id);
 
     if (!existingUser) {
       throw new ApiError(404, 'User not found');
@@ -113,7 +137,9 @@ const updateUser = async (id, userData) => {
 
     // Check if email is being changed and already exists
     if (userData.email && userData.email !== existingUser.email) {
-      const userWithEmail = await User.findByEmail(userData.email);
+      const userWithEmail = await User.findOne({
+        where: { email: userData.email }
+      });
 
       if (userWithEmail) {
         throw new ApiError(409, 'Email is already in use');
@@ -121,11 +147,19 @@ const updateUser = async (id, userData) => {
     }
 
     // Update user
-    const updatedUser = await User.update(id, userData);
+    await existingUser.update(userData);
+
+    // Get updated user without password
+    const updatedUser = await User.findByPk(id, {
+      attributes: { exclude: ['password'] }
+    });
 
     return updatedUser;
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, error.message);
   }
 };
 
@@ -139,7 +173,7 @@ const updateUser = async (id, userData) => {
 const updatePassword = async (id, currentPassword, newPassword) => {
   try {
     // Get user with password
-    const user = await User.findByEmail((await User.findById(id)).email);
+    const user = await User.findByPk(id);
 
     if (!user) {
       throw new ApiError(404, 'User not found');
@@ -157,11 +191,14 @@ const updatePassword = async (id, currentPassword, newPassword) => {
 
     // Hash and update new password
     const hashedPassword = await hashPassword(newPassword);
-    await User.updatePassword(id, hashedPassword);
+    await user.update({ password: hashedPassword });
 
     return true;
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, error.message);
   }
 };
 
@@ -173,18 +210,22 @@ const updatePassword = async (id, currentPassword, newPassword) => {
 const deleteUser = async (id) => {
   try {
     // Check if user exists
-    const user = await User.findById(id);
+    const user = await User.findByPk(id);
 
     if (!user) {
       throw new ApiError(404, 'User not found');
     }
 
     // Delete user
-    await User.remove(id);
+    await user.destroy();
 
     return true;
   } catch (error) {
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    throw new ApiError(500, error.message);
   }
 };
 
