@@ -3,21 +3,21 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 require('dotenv').config();
 
-const userRoutes = require('./routes/user.routes');
 const orderRoutes = require('./routes/order.routes');
-const authRoutes = require('./routes/auth.routes');
 const { errorHandler } = require('./middlewares/error.middleware');
 const { logger } = require('./utils/logger');
 
 // Initialize express app
 const app = express();
 
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:3030';
+
 // Apply middlewares
 app.use(cors());
 app.use(helmet());
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Logging middleware
@@ -36,9 +36,37 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/users', userRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/auth', authRoutes);
+app.use('/api/users', createProxyMiddleware({
+  target: USER_SERVICE_URL,
+  changeOrigin: true,
+  pathRewrite: { '^/': '/api/users/' },
+  logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  logger: console,
+  onError: (err, req, res) => {
+    logger.error(`Proxy error: ${err.message}`);
+    res.status(500).json({
+      status: 'error',
+      message: 'User service is currently unavailable'
+    });
+  }
+}));
+
+app.use('/api/auth', createProxyMiddleware({
+  target: USER_SERVICE_URL,
+  changeOrigin: true,
+  pathRewrite: { '^/': '/api/auth/' },
+  logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  logger: console,
+  onError: (err, req, res) => {
+    logger.error(`Proxy error: ${err.message}`);
+    res.status(500).json({
+      status: 'error',
+      message: 'Authentication (User) service is currently unavailable'
+    });
+  },
+}));
+
+app.use('/api/orders', express.json(), orderRoutes);
 
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === 'production') {

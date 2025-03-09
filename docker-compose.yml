@@ -16,6 +16,7 @@ services:
       - JWT_SECRET=your_jwt_secret_key
       - JWT_EXPIRATION=24h
       - SHOULD_USE_USER_SERVICE_SCHEMA=true
+      - USER_SERVICE_URL=http://user-service:3030
     ports:
       - "3000:3000"
     volumes:
@@ -24,6 +25,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      user-service:
+        condition: service_started
     restart: unless-stopped
     command: sh -c "npm run dev:with-db"
 
