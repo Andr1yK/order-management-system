@@ -91,7 +91,7 @@ const createOrder = async (orderData, token) => {
     });
 
     // Return complete order with items
-    return await getOrderById(result.order.id);
+    return await getOrderById(result.order.id, token);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -230,15 +230,16 @@ const getAllOrders = async (filters = {}, page = 1, limit = 10, token) => {
  * @param {number} userId - User ID
  * @param {number} page - Page number
  * @param {number} limit - Items per page
+ * @param {string} token - JWT token from request
  * @returns {Promise<Object>} - Paginated orders
  */
-const getUserOrders = async (userId, page = 1, limit = 10) => {
+const getUserOrders = async (userId, page = 1, limit = 10, token) => {
   try {
     // Check if user exists
     await validateUserExists(userId, token);
 
     // Get user orders
-    return await getAllOrders({ user_id: userId }, page, limit);
+    return await getAllOrders({ user_id: userId }, page, limit, token);
   } catch (error) {
     if (error.response) {
       if (error.response.status === 404) {
@@ -260,9 +261,10 @@ const getUserOrders = async (userId, page = 1, limit = 10) => {
  * Update an order's status
  * @param {number} id - Order ID
  * @param {string} status - New status
+ * @param {string} token - JWT token from request
  * @returns {Promise<Object>} - Updated order
  */
-const updateOrderStatus = async (id, status) => {
+const updateOrderStatus = async (id, status, token) => {
   try {
     // Check if order exists
     const order = await Order.findByPk(id);
@@ -282,7 +284,7 @@ const updateOrderStatus = async (id, status) => {
     await order.update({ status });
 
     // Get updated order with items
-    return await getOrderById(id);
+    return await getOrderById(id, token);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;

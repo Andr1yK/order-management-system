@@ -18,7 +18,7 @@ const createOrder = async (req, res, next) => {
       return next(new ApiError(403, 'You are not authorized to create orders for other users'));
     }
 
-    const order = await orderService.createOrder(orderData);
+    const order = await orderService.createOrder(orderData, req.headers.authorization);
 
     res.status(201).json({
       status: 'success',
@@ -38,7 +38,7 @@ const deleteOrder = async (req, res, next) => {
     const { id } = req.params;
 
     // Get the order to check ownership
-    const order = await orderService.getOrderById(parseInt(id, 10));
+    const order = await orderService.getOrderById(parseInt(id, 10), req.headers.authorization);
 
     // Only admins can delete orders they don't own
     if (req.user.role !== 'admin' && parseInt(order.user_id, 10) !== parseInt(req.user.id, 10)) {
@@ -79,7 +79,8 @@ const getAllOrders = async (req, res, next) => {
     const result = await orderService.getAllOrders(
       filters,
       parseInt(page, 10),
-      parseInt(limit, 10)
+      parseInt(limit, 10),
+      req.headers.authorization,
     );
 
     res.status(200).json({
@@ -100,7 +101,7 @@ const getOrderById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const order = await orderService.getOrderById(parseInt(id, 10));
+    const order = await orderService.getOrderById(parseInt(id, 10), req.headers.authorization);
 
     // Check if user is authorized to view this order
     if (req.user.role !== 'admin' && parseInt(order.user_id, 10) !== parseInt(req.user.id, 10)) {
@@ -133,7 +134,8 @@ const getUserOrders = async (req, res, next) => {
     const result = await orderService.getUserOrders(
       parseInt(userId, 10),
       parseInt(page, 10),
-      parseInt(limit, 10)
+      parseInt(limit, 10),
+      req.headers.authorization,
     );
 
     res.status(200).json({
@@ -160,14 +162,18 @@ const updateOrderStatus = async (req, res, next) => {
     }
 
     // Get the order to check ownership
-    const order = await orderService.getOrderById(parseInt(id, 10));
+    const order = await orderService.getOrderById(parseInt(id, 10), req.headers.authorization);
 
     // Only admins can update orders they don't own
     if (req.user.role !== 'admin' && parseInt(order.user_id, 10) !== parseInt(req.user.id, 10)) {
       return next(new ApiError(403, 'You are not authorized to update this order'));
     }
 
-    const updatedOrder = await orderService.updateOrderStatus(parseInt(id, 10), status);
+    const updatedOrder = await orderService.updateOrderStatus(
+      parseInt(id, 10),
+      status,
+      req.headers.authorization,
+    );
 
     res.status(200).json({
       status: 'success',
