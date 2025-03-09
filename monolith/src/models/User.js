@@ -48,12 +48,6 @@ const options = {
   updatedAt: 'updated_at'
 }
 
-const User = sequelize.define(
-  'User',
-  attributes,
-  options,
-);
-
 const ServiceUser = sequelize.define(
   'User',
   attributes,
@@ -63,6 +57,4 @@ const ServiceUser = sequelize.define(
   },
 );
 
-module.exports = process.env.SHOULD_USE_USER_SERVICE_SCHEMA === 'true'
-  ? ServiceUser
-  : User;
+module.exports = ServiceUser;

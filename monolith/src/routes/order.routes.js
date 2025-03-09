@@ -18,4 +18,7 @@ router.route('/:id')
 // Update order status
 router.patch('/:id/status', orderController.updateOrderStatus);
 
+// Get user orders
+router.get('/:userId/orders', authenticate, orderController.getUserOrders);
+
 module.exports = router;
