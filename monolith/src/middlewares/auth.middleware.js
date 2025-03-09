@@ -1,6 +1,5 @@
 const { verifyToken } = require('../config/auth');
 const { ApiError } = require('./error.middleware');
-const userService = require('../services/user.service');
 
 /**
  * Middleware to check if user is authenticated
@@ -24,17 +23,23 @@ const authenticate = async (req, res, next) => {
     // Verify token
     const decoded = verifyToken(token);
 
-    // Check if user still exists
-    const user = await userService.getUserById(decoded.id);
-
-    if (!user) {
-      return next(new ApiError(401, 'The user belonging to this token no longer exists.'));
-    }
-
     // Grant access to protected route
-    req.user = user;
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role
+    };
+
     next();
   } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return next(new ApiError(401, 'Invalid token. Please log in again.'));
+    }
+
+    if (error.name === 'TokenExpiredError') {
+      return next(new ApiError(401, 'Your token has expired! Please log in again.'));
+    }
+
     next(error);
   }
 };

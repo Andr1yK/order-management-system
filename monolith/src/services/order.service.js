@@ -1,22 +1,45 @@
-const { Order, OrderItem, User } = require('../models');
+const { Order, OrderItem } = require('../models');
 const { ApiError } = require('../middlewares/error.middleware');
 const { sequelize } = require('../config/sequelize');
+const axios = require("axios");
+
+const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3030';
+
+/**
+ * Check if a user exists
+ * @param {number} userId - User ID
+ * @param {string} token - Authorization token
+ * @returns {Promise<Object>} - User data
+ */
+const validateUserExists = async (userId, token) => {
+  try {
+    const response = await axios.get(`${userServiceUrl}/api/users/${userId}`, {
+      headers: token ? { 'Authorization': token } : {}
+    });
+    return response.data.data.user;
+  } catch (error) {
+    if (error.response) {
+      if (error.response.status === 404) {
+        throw new ApiError(404, 'User not found');
+      }
+      throw new ApiError(error.response.status, error.response.data.message || 'Error from user service');
+    }
+    throw new ApiError(500, 'User service unavailable');
+  }
+};
 
 /**
  * Create a new order
  * @param {Object} orderData - Order data
+ * @param {string} token - JWT token from request
  * @returns {Promise<Object>} - Created order
  */
-const createOrder = async (orderData) => {
+const createOrder = async (orderData, token) => {
   try {
     const { user_id, items, status = 'pending' } = orderData;
 
     // Validate user existence
-    const user = await User.findByPk(user_id);
-
-    if (!user) {
-      throw new ApiError(404, 'User not found');
-    }
+    await validateUserExists(user_id, token);
 
     // Validate items
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -68,7 +91,7 @@ const createOrder = async (orderData) => {
     });
 
     // Return complete order with items
-    return await getOrderById(result.order.id);
+    return await getOrderById(result.order.id, token);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -80,17 +103,13 @@ const createOrder = async (orderData) => {
 /**
  * Get an order by ID with all items
  * @param {number} id - Order ID
+ * @param {string} token - JWT token from request
  * @returns {Promise<Object>} - Order object
  */
-const getOrderById = async (id) => {
+const getOrderById = async (id, token) => {
   try {
     const order = await Order.findByPk(id, {
       include: [
-        {
-          model: User,
-          as: 'user',
-          attributes: ['id', 'name', 'email']
-        },
         {
           model: OrderItem,
           as: 'items'
@@ -102,10 +121,13 @@ const getOrderById = async (id) => {
       throw new ApiError(404, 'Order not found');
     }
 
+    // Get user information from user-service
+    const user = await validateUserExists(order.user_id, token);
+
     // Format response
     const formattedOrder = order.toJSON();
-    formattedOrder.user_name = order.user.name;
-    formattedOrder.user_email = order.user.email;
+    formattedOrder.user_name = user.name;
+    formattedOrder.user_email = user.email;
 
     return formattedOrder;
   } catch (error) {
@@ -121,9 +143,10 @@ const getOrderById = async (id) => {
  * @param {Object} filters - Filter options
  * @param {number} page - Page number
  * @param {number} limit - Items per page
+ * @param {string} token - JWT token from request
  * @returns {Promise<Object>} - Paginated orders
  */
-const getAllOrders = async (filters = {}, page = 1, limit = 10) => {
+const getAllOrders = async (filters = {}, page = 1, limit = 10, token) => {
   try {
     const offset = (page - 1) * limit;
     const where = {};
@@ -139,24 +162,54 @@ const getAllOrders = async (filters = {}, page = 1, limit = 10) => {
       order: [['created_at', 'DESC']],
       include: [
         {
-          model: User,
-          as: 'user',
-          attributes: ['id', 'name', 'email']
-        },
-        {
           model: OrderItem,
           as: 'items'
         }
       ]
     });
 
+    // Get unique user IDs
+    const userIds = [...new Set(rows.map(order => order.user_id))];
+
+    // Fetch user information for all orders in one batch if possible
+    let userMap = {};
+    try {
+      const usersResponse = await axios.get(`${userServiceUrl}/api/users/batch`, {
+        params: { ids: userIds.join(',') },
+        headers: token ? { 'Authorization': token } : {}
+      });
+
+      // Create a map of user_id to user data
+      userMap = usersResponse.data.data.reduce((map, user) => {
+        map[user.id] = user;
+        return map;
+      }, {});
+    } catch (error) {
+      console.error('Failed to fetch users in batch, falling back to individual requests');
+
+      // Fallback: Fetch each user individually
+      for (const userId of userIds) {
+        try {
+          const user = await validateUserExists(userId, token);
+          userMap[userId] = user;
+        } catch (error) {
+          // If user not found, continue with partial data
+          console.error(`Failed to fetch user ${userId}: ${error.message}`);
+        }
+      }
+    }
+
     // Format response
     const orders = rows.map(order => {
       const formattedOrder = order.toJSON();
-      formattedOrder.user_name = order.user.name;
-      formattedOrder.user_email = order.user.email;
+      const user = userMap[order.user_id] || {};
+
+      formattedOrder.user_name = user.name || 'Unknown User';
+      formattedOrder.user_email = user.email || 'unknown@email.com';
+
       return formattedOrder;
     });
+
 
     return {
       orders,
@@ -177,24 +230,30 @@ const getAllOrders = async (filters = {}, page = 1, limit = 10) => {
  * @param {number} userId - User ID
  * @param {number} page - Page number
  * @param {number} limit - Items per page
+ * @param {string} token - JWT token from request
  * @returns {Promise<Object>} - Paginated orders
  */
-const getUserOrders = async (userId, page = 1, limit = 10) => {
+const getUserOrders = async (userId, page = 1, limit = 10, token) => {
   try {
     // Check if user exists
-    const user = await User.findByPk(userId);
-
-    if (!user) {
-      throw new ApiError(404, 'User not found');
-    }
+    await validateUserExists(userId, token);
 
     // Get user orders
-    return await getAllOrders({ user_id: userId }, page, limit);
+    return await getAllOrders({ user_id: userId }, page, limit, token);
   } catch (error) {
+    if (error.response) {
+      if (error.response.status === 404) {
+        throw new ApiError(404, 'User not found');
+      }
+
+      throw new ApiError(error.response.status, error.response.data.message || 'Error from user service');
+    }
+
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError(500, error.message);
+
+    throw new ApiError(500, error.message || 'Internal Server Error');
   }
 };
 
@@ -202,9 +261,10 @@ const getUserOrders = async (userId, page = 1, limit = 10) => {
  * Update an order's status
  * @param {number} id - Order ID
  * @param {string} status - New status
+ * @param {string} token - JWT token from request
  * @returns {Promise<Object>} - Updated order
  */
-const updateOrderStatus = async (id, status) => {
+const updateOrderStatus = async (id, status, token) => {
   try {
     // Check if order exists
     const order = await Order.findByPk(id);
@@ -224,7 +284,7 @@ const updateOrderStatus = async (id, status) => {
     await order.update({ status });
 
     // Get updated order with items
-    return await getOrderById(id);
+    return await getOrderById(id, token);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;

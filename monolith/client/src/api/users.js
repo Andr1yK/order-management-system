@@ -71,17 +71,6 @@ export const deleteUser = async (id) => {
 };
 
 /**
- * Get user orders
- * @param {number} userId - User ID
- * @param {number} page - Page number
- * @param {number} limit - Items per page
- * @returns {Promise} - Axios response
- */
-export const getUserOrders = async (userId, page = 1, limit = 10) => {
-  return authAxios().get(`${API_URL}/${userId}/orders?page=${page}&limit=${limit}`);
-};
-
-/**
  * Get current user
  * @returns {Promise} - Axios response
  */
