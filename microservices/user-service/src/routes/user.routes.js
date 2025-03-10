@@ -5,12 +5,17 @@ const { authenticate, authorize } = require('../middlewares/auth.middleware');
 const router = express.Router();
 
 // Get current user
-router.get('/me', authenticate, userController.getCurrentUser);
+router
+  .get('/me', authenticate, userController.getCurrentUser)
+  .patch('/me', authenticate, userController.updateMe)
 
 // Admin routes
 router.route('/')
   .get(authenticate, authorize('admin'), userController.getAllUsers)
   .post(authenticate, authorize('admin'), userController.createUser);
+
+router.route('/batch')
+  .get(authenticate, authorize('admin'), userController.getUsersByIds);
 
 // User routes (authenticated)
 router.route('/:id')

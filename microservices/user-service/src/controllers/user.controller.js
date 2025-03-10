@@ -58,6 +58,62 @@ const getUserById = async (req, res, next) => {
 };
 
 /**
+ * Get users by IDs
+ * @route GET /api/users/batch
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<void>}
+ */
+const getUsersByIds = async (req, res, next) => {
+  try {
+    const { ids } = req.query;
+
+    if (!ids) {
+      return next(new ApiError(400, 'User IDs are required'));
+    }
+
+    const idsArray = ids.split(',').map(id => parseInt(id, 10));
+
+    const users = await userService.getUsersByIds(idsArray);
+
+    res.status(200).json({
+      status: 'success',
+      data: users || [],
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Update current user (based on token)
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<void>}
+ */
+const updateMe = async (req, res, next) => {
+  try {
+    const params = { ...req.body };
+
+    // Prevent role update by non-admins
+    if (params.role && req.user.role !== 'admin' && params.role !== req.user.role) {
+      return next(new ApiError(403, 'You are not authorized to update roles'));
+    }
+
+    const updatedUser = await userService.updateUser(req.user.id, params);
+
+    res.status(200).json({
+      status: 'success',
+      data: { user: updatedUser }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * Update user
  * @route PATCH /api/users/:id
  */
@@ -158,6 +214,8 @@ module.exports = {
   createUser,
   getAllUsers,
   getUserById,
+  getUsersByIds,
+  updateMe,
   updateUser,
   updatePassword,
   deleteUser,

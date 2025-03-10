@@ -41,7 +41,7 @@ app.use('/api/users', createProxyMiddleware({
   changeOrigin: true,
   pathRewrite: { '^/': '/api/users/' },
   logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
-  logger: console,
+  logger: logger,
   onError: (err, req, res) => {
     logger.error(`Proxy error: ${err.message}`);
     res.status(500).json({
@@ -56,7 +56,7 @@ app.use('/api/auth', createProxyMiddleware({
   changeOrigin: true,
   pathRewrite: { '^/': '/api/auth/' },
   logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
-  logger: console,
+  logger: logger,
   onError: (err, req, res) => {
     logger.error(`Proxy error: ${err.message}`);
     res.status(500).json({
