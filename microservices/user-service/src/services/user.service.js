@@ -1,6 +1,7 @@
 const { User } = require('../models');
 const { hashPassword } = require('../config/auth');
 const { ApiError } = require('../middlewares/error.middleware');
+const { Op } = require('sequelize');
 
 /**
  * Create a new user
@@ -63,6 +64,28 @@ const getUserById = async (id) => {
     throw new ApiError(500, error.message);
   }
 };
+
+/**
+ * Get users by IDs
+ * @param {Array<number>} ids - User IDs
+ * @returns {Promise<void>}
+ */
+const getUsersByIds = async (ids) => {
+  try {
+    const users = await User.findAll({
+      where: {
+        id: {
+          [Op.in]: ids
+        },
+      },
+      attributes: { exclude: ['password'] }
+    });
+
+    return users;
+  } catch (error) {
+    throw new ApiError(500, error.message);
+  }
+}
 
 /**
  * Get a user by email
@@ -231,6 +254,7 @@ const deleteUser = async (id) => {
 module.exports = {
   createUser,
   getUserById,
+  getUsersByIds,
   getUserByEmail,
   getAllUsers,
   updateUser,
