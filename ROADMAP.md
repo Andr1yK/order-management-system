@@ -24,7 +24,7 @@
 
 - [x] Confirm both schemas work correctly
     - [x] Test CRUD operations on tables in different schemas
-    - [ x Check data integrity between schemas
+    - [x] Check data integrity between schemas
 
 ## Step 3: User Service Creation
 
