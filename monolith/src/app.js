@@ -6,7 +6,6 @@ const path = require('path');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 require('dotenv').config();
 
-const orderRoutes = require('./routes/order.routes');
 const { errorHandler } = require('./middlewares/error.middleware');
 const { logger } = require('./utils/logger');
 
@@ -14,6 +13,7 @@ const { logger } = require('./utils/logger');
 const app = express();
 
 const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:3030';
+const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:4040';
 
 // Apply middlewares
 app.use(cors());
@@ -66,7 +66,21 @@ app.use('/api/auth', createProxyMiddleware({
   },
 }));
 
-app.use('/api/orders', express.json(), orderRoutes);
+app.use('/api/orders', createProxyMiddleware({
+  target: ORDER_SERVICE_URL,
+  changeOrigin: true,
+  pathRewrite: { '^/': '/api/orders/' },
+  logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  logger: logger,
+  onError: (err, req, res) => {
+    logger.error(`Proxy error: ${err.message}`);
+
+    res.status(500).json({
+      status: 'error',
+      message: 'Order service is currently unavailable'
+    });
+  },
+}));
 
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === 'production') {
