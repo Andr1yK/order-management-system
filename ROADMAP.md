@@ -7,16 +7,16 @@
     - [x] Analyze dependencies between domains
     - [x] Document API contracts between domains
 
-- [ ] Create a deployment strategy
-    - [ ] Choose the "strangler pattern" approach for gradual migration
-    - [ ] Develop a plan for handling existing data
-    - [ ] Define a testing strategy during migration
+- [x] Create a deployment strategy
+    - [x] Choose the "strangler pattern" approach for gradual migration
+    - [x] Develop a plan for handling existing data
+    - [x] Define a testing strategy during migration
 
 ## Step 2: Database Isolation
 
-- [ ] Create separate schemas for each domain
-    - [ ] Create `user_service_db` schema for the user table
-    - [ ] Create `order_service_db` schema for the orders table
+- [x] Create separate schemas for each domain
+    - [x] Create `user_service_db` schema for the user table
+    - [x] Create `order_service_db` schema for the orders table
 
 - [ ] Set up interaction between schemas
     - [ ] Establish foreign keys between schemas
@@ -28,34 +28,34 @@
 
 ## Step 3: User Service Creation
 
-- [ ] Create a project for the user microservice
-    - [ ] Set up the project structure
-    - [ ] Set up database access (`user_service_db` schema)
-    - [ ] Implement necessary models
+- [x] Create a project for the user microservice
+    - [x] Set up the project structure
+    - [x] Set up database access (`user_service_db` schema)
+    - [x] Implement necessary models
 
-- [ ] Implement REST API
-    - [ ] Implement authentication routes (login/register)
-    - [ ] Implement CRUD operations for users
-    - [ ] Set up middleware for authorization and validation
+- [x] Implement REST API
+    - [x] Implement authentication routes (login/register)
+    - [x] Implement CRUD operations for users
+    - [x] Set up middleware for authorization and validation
 
-- [ ] Set up user request routing
-    - [ ] Set up API Gateway or proxy in the monolithic app
-    - [ ] Ensure requests to `/api/users` and `/api/auth` go to the new service
+- [x] Set up user request routing
+    - [x] Set up API Gateway or proxy in the monolithic app
+    - [x] Ensure requests to `/api/users` and `/api/auth` go to the new service
 
 ## Step 4: Monolithic Application Adaptation
 
-- [ ] Update the monolithic application
-    - [ ] Remove user logic from the monolithic app
-    - [ ] Set up HTTP client for communication with the user service
-    - [ ] Update order controllers to interact with the user service
+- [x] Update the monolithic application
+    - [x] Remove user logic from the monolithic app
+    - [x] Set up HTTP client for communication with the user service
+    - [x] Update order controllers to interact with the user service
 
-- [ ] Set up request proxying
-    - [ ] Implement proxy routes for `/api/users` and `/api/auth`
-    - [ ] Set up error handling when the user service is unavailable
+- [x] Set up request proxying
+    - [x] Implement proxy routes for `/api/users` and `/api/auth`
+    - [x] Set up error handling when the user service is unavailable
 
-- [ ] Integration testing
-    - [ ] Verify that the monolithic application interacts correctly with the user service
-    - [ ] Check that authorization works via JWT tokens
+- [x] Integration testing
+    - [x] Verify that the monolithic application interacts correctly with the user service
+    - [x] Check that authorization works via JWT tokens
 
 ## Step 5: Transition to the Order Service
 
