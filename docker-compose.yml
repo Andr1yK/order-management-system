@@ -16,7 +16,7 @@ services:
       - JWT_SECRET=your_jwt_secret_key
       - JWT_EXPIRATION=24h
       - USER_SERVICE_URL=http://user-service:3030
-      - ORDER_SERVICE_URL=http://order-service:3040
+      - ORDER_SERVICE_URL=http://order-service:4040
       - SHOULD_USE_ORDER_SERVICE_SCHEMA=true
     ports:
       - "3000:3000"
@@ -61,7 +61,7 @@ services:
     build: ./microservices/order-service
     container_name: order-service
     environment:
-      - PORT=3040
+      - PORT=4040
       - NODE_ENV=development
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -74,7 +74,7 @@ services:
       - JWT_EXPIRATION=24h
       - USER_SERVICE_URL=http://user-service:3030
     ports:
-      - "3040:3040"
+      - "4040:4040"
     volumes:
       - ./microservices/order-service:/usr/src/app
       - /usr/src/app/node_modules

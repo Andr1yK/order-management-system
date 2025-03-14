@@ -12,7 +12,7 @@ RUN npm install
 COPY . .
 
 # Expose port
-EXPOSE 3040
+EXPOSE 4040
 
 # Command to run migrations and start the app
 CMD ["npm", "run", "start"]
