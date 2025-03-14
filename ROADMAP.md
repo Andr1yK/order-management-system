@@ -1,0 +1,151 @@
+# Microservices Architecture Migration Checklist
+
+## Step 1: Preparation for Migration
+
+- [x] Conduct an audit of the current monolithic application
+    - [x] Define clear domain boundaries (Users and Orders)
+    - [x] Analyze dependencies between domains
+    - [x] Document API contracts between domains
+
+- [ ] Create a deployment strategy
+    - [ ] Choose the "strangler pattern" approach for gradual migration
+    - [ ] Develop a plan for handling existing data
+    - [ ] Define a testing strategy during migration
+
+## Step 2: Database Isolation
+
+- [ ] Create separate schemas for each domain
+    - [ ] Create `user_service_db` schema for the user table
+    - [ ] Create `order_service_db` schema for the orders table
+
+- [ ] Set up interaction between schemas
+    - [ ] Establish foreign keys between schemas
+    - [ ] Set access rights to schemas
+
+- [ ] Confirm both schemas work correctly
+    - [ ] Test CRUD operations on tables in different schemas
+    - [ ] Check data integrity between schemas
+
+## Step 3: User Service Creation
+
+- [ ] Create a project for the user microservice
+    - [ ] Set up the project structure
+    - [ ] Set up database access (`user_service_db` schema)
+    - [ ] Implement necessary models
+
+- [ ] Implement REST API
+    - [ ] Implement authentication routes (login/register)
+    - [ ] Implement CRUD operations for users
+    - [ ] Set up middleware for authorization and validation
+
+- [ ] Set up user request routing
+    - [ ] Set up API Gateway or proxy in the monolithic app
+    - [ ] Ensure requests to `/api/users` and `/api/auth` go to the new service
+
+## Step 4: Monolithic Application Adaptation
+
+- [ ] Update the monolithic application
+    - [ ] Remove user logic from the monolithic app
+    - [ ] Set up HTTP client for communication with the user service
+    - [ ] Update order controllers to interact with the user service
+
+- [ ] Set up request proxying
+    - [ ] Implement proxy routes for `/api/users` and `/api/auth`
+    - [ ] Set up error handling when the user service is unavailable
+
+- [ ] Integration testing
+    - [ ] Verify that the monolithic application interacts correctly with the user service
+    - [ ] Check that authorization works via JWT tokens
+
+## Step 5: Transition to the Order Service
+
+- [ ] Create a project for the order microservice
+    - [ ] Set up the project structure
+    - [ ] Set up database access (`order_service_db` schema)
+    - [ ] Implement necessary models (orders and order items)
+
+- [ ] Implement REST API
+    - [ ] Implement CRUD operations for orders
+    - [ ] Set up middleware for authorization
+
+- [ ] Set up interaction between services
+    - [ ] Implement HTTP client for communication with the user service
+    - [ ] Implement user validation mechanism for order operations
+
+## Step 6: API Gateway Setup
+
+- [ ] Choose and set up an API Gateway
+    - [ ] Configure routing between services
+    - [ ] Implement request aggregation (composition of responses)
+
+- [ ] Set up authentication at the Gateway level
+    - [ ] Verify JWT tokens
+    - [ ] Pass user information between services
+
+- [ ] Implement API documentation
+    - [ ] Set up Swagger/OpenAPI for shared API documentation
+
+## Step 7: Implement Asynchronous Communication
+
+- [ ] Choose and set up a message broker (RabbitMQ, Kafka)
+
+- [ ] Implement event-driven interaction between services
+    - [ ] Publish user creation/update events
+    - [ ] Publish order creation/update events
+
+- [ ] Handle events in respective services
+    - [ ] Update local user data in the order service
+
+## Step 8: Set Up Resilience and Reliability
+
+- [ ] Implement resilience patterns
+    - [ ] Circuit Breaker for HTTP calls between services
+    - [ ] Retry with exponential backoff
+    - [ ] Timeout for requests
+
+- [ ] Set up error isolation
+    - [ ] Bulkhead for resource separation
+    - [ ] Handle partial failures
+
+## Step 9: Implement Monitoring and Observability
+
+- [ ] Set up centralized logging
+    - [ ] Install ELK Stack or similar solution
+    - [ ] Add contextual logs to all services
+
+- [ ] Set up distributed tracing
+    - [ ] Install Jaeger/Zipkin/other solutions
+    - [ ] Add tracing for requests across services
+
+- [ ] Set up service monitoring
+    - [ ] Install Prometheus/Grafana
+    - [ ] Set up health-check endpoints for all services
+
+## Step 10: Deployment and DevOps
+
+- [ ] Set up CI/CD for all services
+    - [ ] Automate build and testing
+    - [ ] Implement deployment strategy (blue-green, canary)
+
+- [ ] Set up containerization
+    - [ ] Optimize Docker images
+    - [ ] Set up Docker Compose for local development
+    - [ ] Prepare configuration for Kubernetes (optional)
+
+- [ ] Develop a backup strategy
+    - [ ] Set up database backups
+    - [ ] Develop disaster recovery plans
+
+## Future Steps and Optimizations
+
+- [ ] Investigate further service splitting possibilities
+    - [ ] Split the authorization/authentication service
+    - [ ] Split the notification service
+
+- [ ] Performance optimization
+    - [ ] Implement caching
+    - [ ] Optimize API Gateway
+
+- [ ] Security
+    - [ ] Conduct a security audit of microservices
+    - [ ] Implement service access restrictions (Service Mesh)
