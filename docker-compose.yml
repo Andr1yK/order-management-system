@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     build: monolith
-    container_name: order-management-app
+    container_name: app
     environment:
       - PORT=3000
       - NODE_ENV=development
@@ -16,7 +16,8 @@ services:
       - JWT_SECRET=your_jwt_secret_key
       - JWT_EXPIRATION=24h
       - USER_SERVICE_URL=http://user-service:3030
-      - SHOULD_USE_ORDER_SERVICE_SCHEMA=false
+      - ORDER_SERVICE_URL=http://order-service:3040
+      - SHOULD_USE_ORDER_SERVICE_SCHEMA=true
     ports:
       - "3000:3000"
     volumes:
@@ -32,7 +33,7 @@ services:
 
   user-service:
     build: ./microservices/user-service
-    container_name: order-management-user-service
+    container_name: user-service
     environment:
       - PORT=3030
       - NODE_ENV=development
@@ -56,9 +57,36 @@ services:
     restart: unless-stopped
     command: sh -c "npm run dev"
 
+  order-service:
+    build: ./microservices/order-service
+    container_name: order-service
+    environment:
+      - PORT=3040
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=order_management
+      - DB_SCHEMA=order_service_db
+      - DB_SSL=false
+      - JWT_SECRET=your_jwt_secret_key
+      - JWT_EXPIRATION=24h
+      - USER_SERVICE_URL=http://user-service:3030
+    ports:
+      - "3040:3040"
+    volumes:
+      - ./microservices/order-service:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    command: sh -c "npm run dev"
+
   postgres:
     image: postgres:14-alpine
-    container_name: order-management-postgres
+    container_name: postgres
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -77,7 +105,7 @@ services:
   frontend:
     build:
       context: ./monolith/client
-    container_name: order-management-frontend
+    container_name: frontend
     ports:
       - "3001:3000"
     volumes:
