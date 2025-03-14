@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 
+const orderRoutes = require('./routes/order.routes');
 const { errorHandler } = require('./middlewares/error.middleware');
 const { logger } = require('./utils/logger');
 
@@ -32,7 +33,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-// TBD
+app.use('/api/orders', orderRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
