@@ -19,12 +19,12 @@
     - [x] Create `order_service_db` schema for the orders table
 
 - [ ] Set up interaction between schemas
-    - [ ] Establish foreign keys between schemas
+    - [x] Establish foreign keys between schemas
     - [ ] Set access rights to schemas
 
-- [ ] Confirm both schemas work correctly
-    - [ ] Test CRUD operations on tables in different schemas
-    - [ ] Check data integrity between schemas
+- [x] Confirm both schemas work correctly
+    - [x] Test CRUD operations on tables in different schemas
+    - [ x Check data integrity between schemas
 
 ## Step 3: User Service Creation
 
@@ -59,27 +59,27 @@
 
 ## Step 5: Transition to the Order Service
 
-- [ ] Create a project for the order microservice
-    - [ ] Set up the project structure
-    - [ ] Set up database access (`order_service_db` schema)
-    - [ ] Implement necessary models (orders and order items)
+- [x] Create a project for the order microservice
+    - [x] Set up the project structure
+    - [x] Set up database access (`order_service_db` schema)
+    - [x] Implement necessary models (orders and order items)
 
-- [ ] Implement REST API
-    - [ ] Implement CRUD operations for orders
-    - [ ] Set up middleware for authorization
+- [x] Implement REST API
+    - [x] Implement CRUD operations for orders
+    - [x] Set up middleware for authorization
 
-- [ ] Set up interaction between services
-    - [ ] Implement HTTP client for communication with the user service
-    - [ ] Implement user validation mechanism for order operations
+- [x] Set up interaction between services
+    - [x] Implement HTTP client for communication with the user service
+    - [x] Implement user validation mechanism for order operations
 
 ## Step 6: API Gateway Setup
 
 - [ ] Choose and set up an API Gateway
-    - [ ] Configure routing between services
+    - [x] Configure routing between services
     - [ ] Implement request aggregation (composition of responses)
 
 - [ ] Set up authentication at the Gateway level
-    - [ ] Verify JWT tokens
+    - [x] Verify JWT tokens
     - [ ] Pass user information between services
 
 - [ ] Implement API documentation
