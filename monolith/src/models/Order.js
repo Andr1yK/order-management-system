@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/sequelize');
 
-const Order = sequelize.define('Order', {
+const attributes = {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -27,11 +27,30 @@ const Order = sequelize.define('Order', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   }
-}, {
+};
+
+const options = {
   tableName: 'orders',
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at'
-});
+};
 
-module.exports = Order;
+const Order = sequelize.define(
+  'Order',
+  attributes,
+  options,
+);
+
+const ServiceOrder = sequelize.define(
+  'ServiceOrder',
+  attributes,
+  {
+    ...options,
+    schema: 'order_service_db',
+  },
+);
+
+module.exports = process.env.SHOULD_USE_ORDER_SERVICE_SCHEMA
+  ? ServiceOrder
+  : Order;
