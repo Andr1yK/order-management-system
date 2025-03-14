@@ -1,6 +1,7 @@
 const { Order, OrderItem } = require('../models');
 const { ApiError } = require('../middlewares/error.middleware');
 const { sequelize } = require('../config/sequelize');
+const { logger } = require('../utils/logger');
 const axios = require("axios");
 
 const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3030';
@@ -185,16 +186,15 @@ const getAllOrders = async (filters = {}, page = 1, limit = 10, token) => {
         return map;
       }, {});
     } catch (error) {
-      console.error('Failed to fetch users in batch, falling back to individual requests');
+      logger.error('Failed to fetch users in batch, falling back to individual requests');
 
       // Fallback: Fetch each user individually
       for (const userId of userIds) {
         try {
-          const user = await validateUserExists(userId, token);
-          userMap[userId] = user;
+          userMap[userId] = await validateUserExists(userId, token);
         } catch (error) {
           // If user not found, continue with partial data
-          console.error(`Failed to fetch user ${userId}: ${error.message}`);
+          logger.error(`Failed to fetch user ${userId}: ${error.message}`);
         }
       }
     }
