@@ -17,7 +17,6 @@ services:
       - JWT_EXPIRATION=24h
       - USER_SERVICE_URL=http://user-service:3030
       - ORDER_SERVICE_URL=http://order-service:4040
-      - SHOULD_USE_ORDER_SERVICE_SCHEMA=true
     ports:
       - "3000:3000"
     volumes:

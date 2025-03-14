@@ -8,13 +8,9 @@ const PORT = process.env.PORT || 3000;
 // Connect to database then start server
 async function startServer() {
   try {
-    // Connect to database
-    await connectDB();
-    logger.info('Database connection established');
-
     // Start the server
     app.listen(PORT, () => {
-      logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+      logger.info(`Proxy server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
     });
   } catch (error) {
     logger.error(`Failed to start server: ${error.message}`);
