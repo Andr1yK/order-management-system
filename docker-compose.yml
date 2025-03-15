@@ -145,10 +145,30 @@ services:
     ports:
       - "3002:3000"
     restart: unless-stopped
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki:/etc/loki
+      - loki_data:/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+
+  promtail:
+    image: grafana/promtail:2.8.0
+    container_name: promtail
+    volumes:
+      - ./promtail:/etc/promtail
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/promtail-config.yaml
     depends_on:
-      - prometheus
+      - loki
+
 
 volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+  loki_data:
