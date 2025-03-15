@@ -4,12 +4,16 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 
+const { setupMetricsMiddleware } = require('./metrics');
+
 const orderRoutes = require('./routes/order.routes');
 const { errorHandler } = require('./middlewares/error.middleware');
 const { logger } = require('./utils/logger');
 
 // Initialize express app
 const app = express();
+
+setupMetricsMiddleware(app, 'order-service');
 
 // Apply middlewares
 app.use(cors());

@@ -4,6 +4,8 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 
+const { setupMetricsMiddleware } = require('./metrics');
+
 const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth.routes');
 const { errorHandler } = require('./middlewares/error.middleware');
@@ -11,6 +13,8 @@ const { logger } = require('./utils/logger');
 
 // Initialize express app
 const app = express();
+
+setupMetricsMiddleware(app, 'user-service');
 
 // Apply middlewares
 app.use(cors());
