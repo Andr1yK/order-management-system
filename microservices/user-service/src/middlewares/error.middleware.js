@@ -25,11 +25,17 @@ const errorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
-  // Log the error
-  logger.error(`${err.statusCode} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
-  if (process.env.NODE_ENV === 'development') {
-    logger.error(err.stack);
-  }
+  // Log the error with request ID
+  logger.error(`Error occurred`, {
+    statusCode: err.statusCode,
+    message: err.message,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    requestId: req.headers['x-request-id'] || 'unknown',
+    service: process.env.SERVICE_NAME || 'user-service',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
 
   // Database constraint error handling
   if (err.code === '23505') {

@@ -2,40 +2,65 @@ const winston = require('winston');
 
 // Define log format
 const logFormat = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
   winston.format.errors({ stack: true }),
-  winston.format.splat(),
   winston.format.json()
 );
 
-// Create logger instance
+// Створюємо логер
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
-  defaultMeta: { service: 'order-management-service' },
+  defaultMeta: {
+    service: process.env.SERVICE_NAME || 'unknown-service',
+    environment: process.env.NODE_ENV || 'development'
+  },
   transports: [
-    // Write logs to console
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(
-          info => `${info.timestamp} ${info.level}: ${info.message}`
-        )
-      )
-    }),
-    // Write logs to file in production
-    ...(process.env.NODE_ENV === 'production'
-      ? [
-        new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'logs/combined.log' })
-      ]
-      : [])
+    new winston.transports.Console()
   ]
 });
 
-// Create a stream object for Morgan
-const stream = {
-  write: (message) => logger.info(message.trim())
+// Функція для додавання контексту запиту до логів
+const addRequestContext = (req) => {
+  return {
+    requestId: req.headers['x-request-id'] || 'unknown',
+    method: req.method,
+    path: req.path,
+    userId: req.user?.id || 'unknown',
+    ip: req.ip
+  };
 };
 
-module.exports = { logger, stream };
+// Розширений логер з підтримкою контексту запиту
+const requestLogger = (req) => {
+  const requestContext = addRequestContext(req);
+
+  return {
+    info: (message, meta = {}) => {
+      logger.info(message, {
+        ...requestContext,
+        ...meta
+      });
+    },
+    error: (message, meta = {}) => {
+      logger.error(message, {
+        ...requestContext,
+        ...meta
+      });
+    },
+    warn: (message, meta = {}) => {
+      logger.warn(message, {
+        ...requestContext,
+        ...meta
+      });
+    },
+    debug: (message, meta = {}) => {
+      logger.debug(message, {
+        ...requestContext,
+        ...meta
+      });
+    }
+  };
+};
+
+module.exports = { logger, requestLogger };
