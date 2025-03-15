@@ -1,13 +1,11 @@
 const winston = require('winston');
 
-// Define log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
   winston.format.errors({ stack: true }),
   winston.format.json()
 );
 
-// Створюємо логер
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
@@ -20,7 +18,6 @@ const logger = winston.createLogger({
   ]
 });
 
-// Функція для додавання контексту запиту до логів
 const addRequestContext = (req) => {
   return {
     requestId: req.headers['x-request-id'] || 'unknown',
@@ -31,7 +28,6 @@ const addRequestContext = (req) => {
   };
 };
 
-// Розширений логер з підтримкою контексту запиту
 const requestLogger = (req) => {
   const requestContext = addRequestContext(req);
 
