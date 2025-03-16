@@ -92,12 +92,12 @@
           "refId": "A"
         }
       ],
-      "title": "Кількість логів за рівнем",
+      "title": "Log Count by Level",
       "type": "timeseries"
     },
     {
       "datasource": "Loki",
-      "description": "Відображає 100 найчастіше запитуваних шляхів",
+      "description": "Displays the 100 most frequently requested paths",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -116,7 +116,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Кількість запитів"
+                "value": "Request Count"
               }
             ]
           },
@@ -128,7 +128,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Шлях"
+                "value": "Path"
               },
               {
                 "id": "custom.width",
@@ -155,7 +155,7 @@
         "sortBy": [
           {
             "desc": true,
-            "displayName": "Кількість запитів"
+            "displayName": "Request Count"
           }
         ]
       },
@@ -172,7 +172,7 @@
           "refId": "A"
         }
       ],
-      "title": "Топ-10 найчастіших шляхів запитів",
+      "title": "Top 10 Most Frequent Request Paths",
       "transformations": [
         {
           "id": "organize",
@@ -236,7 +236,7 @@
           "refId": "A"
         }
       ],
-      "title": "Статус-коди відповідей",
+      "title": "Response Status Codes",
       "transformations": [
         {
           "id": "labelsToFields",
@@ -274,7 +274,7 @@
           "refId": "A"
         }
       ],
-      "title": "Логи",
+      "title": "Logs",
       "type": "logs"
     }
   ],
