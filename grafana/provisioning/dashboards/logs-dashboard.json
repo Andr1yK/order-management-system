@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -13,22 +16,29 @@
     ]
   },
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 7,
   "links": [],
   "panels": [
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -37,6 +47,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -78,15 +89,22 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "mode": "single"
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
         }
       },
-      "pluginVersion": "8.0.6",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
           "expr": "sum(count_over_time({service=~\"$service\"}[$__interval])) by (level)",
           "legendFormat": "{{level}}",
           "refId": "A"
@@ -96,15 +114,34 @@
       "type": "timeseries"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "description": "Displays the 20 most frequently requested paths",
       "fieldConfig": {
         "defaults": {
           "custom": {
             "align": "auto",
-            "displayMode": "auto"
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
           },
-          "mappings": []
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
         },
         "overrides": [
           {
@@ -145,9 +182,13 @@
       },
       "id": 8,
       "options": {
+        "cellHeight": "sm",
         "footer": {
+          "countRows": false,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
         "showHeader": true,
@@ -158,11 +199,16 @@
           }
         ]
       },
-      "pluginVersion": "8.0.6",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
           "expr": "topk(20, count by (path) (count_over_time({service=~\"$service\"} |~ \"Request completed\" | json | path!=\"\" [$__range])))",
-          "queryType": "instant"
+          "queryType": "instant",
+          "refId": "A"
         }
       ],
       "title": "Top 20 Most Frequent Request Paths",
@@ -181,16 +227,20 @@
       "type": "table"
     },
     {
-      "datasource": "Loki",
-      "description": "Shows distribution of status codes for each request path",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "description": "",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
           "custom": {
-            "align": "auto",
-            "displayMode": "auto"
+            "align": "left",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false,
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
@@ -199,6 +249,10 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           }
@@ -207,64 +261,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value"
+              "options": "path\\statusCode"
             },
             "properties": [
-              {
-                "id": "displayName",
-                "value": "Count"
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "color-background-solid"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "orange",
-                      "value": 10
-                    },
-                    {
-                      "color": "red",
-                      "value": 50
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "path"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Path"
-              },
               {
                 "id": "custom.width",
-                "value": 300
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "statusCode"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Status Code"
+                "value": 200
               }
             ]
           }
@@ -278,41 +280,72 @@
       },
       "id": 6,
       "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
         "showHeader": true,
         "sortBy": [
           {
             "desc": true,
-            "displayName": "Count"
+            "displayName": "401"
           }
         ]
       },
-      "pluginVersion": "8.0.6",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
+          "direction": "backward",
+          "editorMode": "code",
           "expr": "sum by (path, statusCode) (count_over_time({service=~\"$service\"} |~ \"Request completed\" | json | path!=\"\" | statusCode!=\"\" [$__range]))",
           "queryType": "instant",
           "refId": "A"
         }
       ],
       "title": "Status Codes by Path",
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "statusCode",
+            "emptyValue": "zero",
+            "rowField": "path",
+            "valueField": "Value #A"
+          }
+        }
+      ],
       "type": "table"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "description": "",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "gridPos": {
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 22
       },
       "id": 2,
       "options": {
         "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
         "enableLogDetails": true,
         "prettifyLogMessage": false,
         "showCommonLabels": false,
@@ -321,9 +354,13 @@
         "sortOrder": "Descending",
         "wrapLogMessage": false
       },
-      "pluginVersion": "8.0.6",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
           "expr": "{service=~\"$service\", level=~\"$level\"} $search",
           "refId": "A"
         }
@@ -332,68 +369,50 @@
       "type": "logs"
     }
   ],
-  "schemaVersion": 30,
-  "style": "dark",
+  "preload": false,
+  "schemaVersion": 40,
   "tags": [],
   "templating": {
     "list": [
       {
         "allValue": ".*",
         "current": {
-          "selected": false,
           "text": "All",
           "value": "$__all"
         },
         "datasource": "Loki",
         "definition": "label_values(service)",
-        "description": null,
-        "error": null,
-        "hide": 0,
         "includeAll": true,
         "label": "Service",
-        "multi": false,
         "name": "service",
         "options": [],
         "query": "label_values(service)",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       },
       {
         "allValue": ".*",
         "current": {
-          "selected": false,
           "text": "All",
           "value": "$__all"
         },
         "datasource": "Loki",
         "definition": "label_values(level)",
-        "description": null,
-        "error": null,
-        "hide": 0,
         "includeAll": true,
         "label": "Log Level",
-        "multi": false,
         "name": "level",
         "options": [],
         "query": "label_values(level)",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       },
       {
         "current": {
-          "selected": false,
           "text": "",
           "value": ""
         },
-        "description": null,
-        "error": null,
-        "hide": 0,
         "label": "Search",
         "name": "search",
         "options": [
@@ -404,7 +423,6 @@
           }
         ],
         "query": "",
-        "skipUrlSync": false,
         "type": "textbox"
       }
     ]
@@ -417,5 +435,6 @@
   "timezone": "",
   "title": "Application Logs",
   "uid": "application-logs",
-  "version": 1
+  "version": 36,
+  "weekStart": ""
 }
