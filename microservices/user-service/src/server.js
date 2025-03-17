@@ -1,3 +1,8 @@
+const { initTracer } =require('./utils/tracer');
+
+// Initialize tracing
+initTracer();
+
 const app = require('./app');
 const { logger } = require('./utils/logger');
 const { connectDB } = require('./config/sequelize');

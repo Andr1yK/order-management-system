@@ -47,6 +47,10 @@ services:
       - DB_SSL=false
       - JWT_SECRET=your_jwt_secret_key
       - JWT_EXPIRATION=24h
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318/v1/traces
+      - OTEL_TRACES_SAMPLER=parentbased_traceidratio
+      - OTEL_TRACES_SAMPLER_ARG=1.0
+      - OTEL_LOG_LEVEL=info
     ports:
       - "3030:3030"
     volumes:
@@ -169,9 +173,21 @@ services:
     depends_on:
       - loki
 
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo/tempo-config.yaml" ]
+    volumes:
+      - ./tempo:/etc/tempo
+      - tempo_data:/var/tempo
+    ports:
+      - "3200:3200"  # Tempo API
+      - "4318:4318"  # OTLP HTTP
+    restart: unless-stopped
 
 volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
   loki_data:
+  tempo_data:

@@ -109,17 +109,17 @@
 
 ## Step 9: Implement Monitoring and Observability
 
-- [ ] Set up centralized logging
-    - [ ] Install ELK Stack or similar solution
-    - [ ] Add contextual logs to all services
+- [x] Set up centralized logging
+    - [x] Install ELK Stack or similar solution
+    - [x] Add contextual logs to all services
 
 - [ ] Set up distributed tracing
     - [ ] Install Jaeger/Zipkin/other solutions
     - [ ] Add tracing for requests across services
 
-- [ ] Set up service monitoring
-    - [ ] Install Prometheus/Grafana
-    - [ ] Set up health-check endpoints for all services
+- [x] Set up service monitoring
+    - [x] Install Prometheus/Grafana
+    - [x] Set up health-check endpoints for all services
 
 ## Step 10: Deployment and DevOps
 
