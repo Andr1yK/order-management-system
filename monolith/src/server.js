@@ -1,6 +1,10 @@
+const { initTracer } =require('./utils/tracer');
+
+// Initialize tracing
+initTracer();
+
 const app = require('./app');
 const { logger } = require('./utils/logger');
-const { connectDB } = require('./config/sequelize');
 
 // Get port from environment or use default
 const PORT = process.env.PORT || 3000;

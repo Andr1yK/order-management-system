@@ -17,6 +17,12 @@
     "dev:with-db": "npm run migrate && npm run seed && npm run dev"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.56.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.200.0",
+    "@opentelemetry/resources": "^2.0.0",
+    "@opentelemetry/sdk-node": "^0.200.0",
+    "@opentelemetry/semantic-conventions": "^1.30.0",
     "axios": "^1.8.2",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.12",
