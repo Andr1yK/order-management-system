@@ -20,7 +20,10 @@ const sdk = new NodeSDK({
   instrumentations: [
     getNodeAutoInstrumentations({
       '@opentelemetry/instrumentation-fs': { enabled: false },
-      '@opentelemetry/instrumentation-express': { enabled: true },
+      '@opentelemetry/instrumentation-express': {
+        enabled: true,
+        ignoreLayersPattern: ['^/metrics', '^/health'],
+      },
       '@opentelemetry/instrumentation-http': { enabled: true },
       '@opentelemetry/instrumentation-pg': { enabled: true },
       '@opentelemetry/instrumentation-pg-pool': { enabled: true },
