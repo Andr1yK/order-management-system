@@ -1,10 +1,10 @@
-# Order Management System
+# E-commerce Microservices Platform
 
-A demonstration project showing the transition from a monolithic architecture to microservices. This system allows for managing users and their orders through a RESTful API with a React frontend.
+A comprehensive project demonstrating the transition from a monolithic architecture to microservices for an e-commerce platform. This system starts with core user and order management capabilities and progressively evolves into a full-featured e-commerce solution.
 
 ## Project Overview
 
-This project illustrates best practices for building a modular monolithic system that can be easily migrated to microservices in the future. The application has been designed with clear boundaries between different domains (users and orders) to facilitate this future transition.
+This project illustrates best practices for building a modular monolithic system that can be easily migrated to microservices. The application has been designed with clear boundaries between different domains (users, orders, products, etc.) to facilitate this transition and support ongoing development into a complete e-commerce platform.
 
 ### Key Features
 
@@ -14,12 +14,43 @@ This project illustrates best practices for building a modular monolithic system
 - RESTful API design
 - React frontend with responsive UI
 - Docker containerization
-- PostgreSQL database
+- PostgreSQL database with schema-per-service approach
 - Modular code organization for easy microservice migration
+- Comprehensive monitoring and observability
+
+### Planned E-commerce Features
+
+- Product catalog with categories and variants
+- Shopping cart management
+- Checkout process with simulated payment processing
+- Inventory management
+- Search and filtering capabilities
+- Promotions and discounts
+- Personalized recommendations
+- Notifications system
 
 ## Architecture
 
-The system follows a layered architecture:
+The system follows a microservices architecture with clear domain boundaries:
+
+### Current Microservices
+
+- **API Gateway** (Monolith acting as proxy)
+- **User Service** (Authentication, user management)
+- **Order Service** (Order processing, order items)
+
+### Planned Microservices
+
+- **Product Catalog Service** (Products, categories, attributes)
+- **Cart Service** (Shopping cart management)
+- **Payment Service** (Payment processing simulation)
+- **Inventory Service** (Stock management)
+- **Search Service** (Product search and filtering)
+- **Recommendation Service** (Personalized suggestions)
+- **Promotion Service** (Discounts, coupons)
+- **Notification Service** (Email, SMS, push notifications)
+
+Each service follows a layered architecture:
 
 - **Controllers**: Handle HTTP requests and responses
 - **Services**: Contain business logic
@@ -34,7 +65,7 @@ The system follows a layered architecture:
 ### Backend
 - Node.js
 - Express.js
-- PostgreSQL
+- PostgreSQL with schema isolation
 - JWT for authentication
 - Winston for logging
 
@@ -45,9 +76,12 @@ The system follows a layered architecture:
 - Formik and Yup for form handling
 - Axios for API calls
 
-### DevOps
-- Docker
-- Docker Compose
+### DevOps & Observability
+- Docker and Docker Compose
+- Prometheus for metrics
+- Grafana for dashboards
+- Loki for log aggregation
+- Tempo for distributed tracing
 
 ## Getting Started
 
@@ -60,8 +94,8 @@ The system follows a layered architecture:
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/order-management-system.git
-   cd order-management-system
+   git clone https://github.com/yourusername/ecommerce-microservices.git
+   cd ecommerce-microservices
    ```
 
 2. Start the application with Docker Compose
@@ -70,9 +104,10 @@ The system follows a layered architecture:
    ```
 
 3. Access the application
-    - Backend API: http://localhost:3000
-    - Frontend: http://localhost:3001
-    - Database: PostgreSQL on port 5432
+   - API Gateway: http://localhost:3000
+   - Frontend: http://localhost:3001
+   - Grafana: http://localhost:3002
+   - Database: PostgreSQL on port 5432
 
 ### Default Users
 
@@ -82,139 +117,43 @@ The system is pre-populated with the following users:
 - Customer: john@example.com / password123
 - Customer: jane@example.com / password123
 
-## API Endpoints
 
-### Authentication
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login a user
-
-### Users
-- `GET /api/users` - Get all users (admin only)
-- `GET /api/users/:id` - Get a specific user
-- `POST /api/users` - Create a user (admin only)
-- `PATCH /api/users/:id` - Update a user
-- `DELETE /api/users/:id` - Delete a user
-- `GET /api/users/me` - Get current user
-- `PATCH /api/users/:id/password` - Update user password
-
-### Orders
-- `GET /api/orders` - Get all orders (filtered by user for non-admins)
-- `GET /api/orders/:id` - Get a specific order
-- `POST /api/orders` - Create a new order
-- `PATCH /api/orders/:id/status` - Update order status
-- `DELETE /api/orders/:id` - Delete an order
-- `GET /api/users/:userId/orders` - Get orders for a specific user
-
-## Project Structure
-
-```
-order-management-system/
-├── docker-compose.yml
-├── Dockerfile
-├── package.json
-├── .env
-├── src/
-│   ├── server.js
-│   ├── app.js
-│   ├── config/
-│   │   ├── db.js
-│   │   └── auth.js
-│   ├── routes/
-│   │   ├── user.routes.js
-│   │   ├── order.routes.js
-│   │   └── auth.routes.js
-│   ├── controllers/
-│   │   ├── user.controller.js
-│   │   ├── order.controller.js
-│   │   └── auth.controller.js
-│   ├── models/
-│   │   ├── user.model.js
-│   │   └── order.model.js
-│   ├── services/
-│   │   ├── user.service.js
-│   │   ├── order.service.js
-│   │   └── auth.service.js
-│   ├── middlewares/
-│   │   ├── auth.middleware.js
-│   │   ├── error.middleware.js
-│   │   └── validation.middleware.js
-│   └── utils/
-│       ├── logger.js
-│       └── validation.js
-├── migrations/
-│   ├── init.sql
-│   └── seed.sql
-└── client/
-    ├── package.json
-    ├── public/
-    │   ├── index.html
-    │   └── favicon.ico
-    └── src/
-        ├── index.js
-        ├── App.js
-        ├── api/
-        │   ├── users.js
-        │   ├── orders.js
-        │   └── auth.js
-        ├── components/
-        │   ├── Header.jsx
-        │   ├── UserList.jsx
-        │   ├── UserForm.jsx
-        │   ├── OrderList.jsx
-        │   ├── OrderForm.jsx
-        │   ├── Login.jsx
-        │   └── Register.jsx
-        ├── pages/
-        │   ├── Home.jsx
-        │   ├── Users.jsx
-        │   ├── Orders.jsx
-        │   ├── UserDetail.jsx
-        │   ├── OrderDetail.jsx
-        │   └── Auth.jsx
-        └── context/
-            └── AuthContext.jsx
-```
 
 ## Microservices Migration Path
 
-This project is designed to be easily migrated to a microservices architecture. The future migration path would involve:
+This project demonstrates a gradual migration path from monolith to microservices:
 
-1. **Database Separation**
-    - Create separate databases for users and orders
-    - Implement data synchronization or inter-service communication
+1. **Modular Monolith** - Starting point with modular design
+2. **Database Isolation** - Using schema-per-service approach in PostgreSQL
+3. **Service Extraction** - Moving functionality to separate services one by one
+4. **API Gateway Integration** - Using the monolith as an API Gateway
+5. **Event-driven Communication** - Implementing asynchronous communication between services
+6. **Resilience Patterns** - Adding circuit breakers, retry mechanisms, etc.
+7. **Advanced E-commerce Features** - Building additional services for a complete platform
 
-2. **Service Separation**
-    - Extract user and order services into separate projects
-    - Implement inter-service communication via API calls
+## Monitoring and Observability
 
-3. **API Gateway**
-    - Add API gateway for request routing and aggregation
-    - Implement service discovery
+The system includes a comprehensive monitoring stack:
 
-4. **Resilience**
-    - Add circuit breakers for fault tolerance
-    - Implement retries and fallbacks
+- **Metrics** - Prometheus for collecting application metrics
+- **Visualization** - Grafana for dashboards and visualizations
+- **Logging** - Loki for centralized log management
+- **Tracing** - Tempo for distributed tracing across services
 
-5. **Observability**
-    - Centralized logging system
-    - Distributed tracing
-    - Health monitoring
+Access the Grafana dashboard at http://localhost:3002 (username: admin, password: admin)
+
+## Development
+
+### Adding a New Microservice
+
+1. Create a new directory in the `microservices` folder
+2. Set up the basic structure (controllers, services, models, routes)
+3. Create a Dockerfile for the service
+4. Add the service to docker-compose.yml
+5. Update the API Gateway to route requests to the new service
+
+
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Thanks to all contributors who have invested their time in improving this project.
-- Special thanks to the JavaScript, Node.js, React, and PostgreSQL communities for their excellent documentation and tools.
