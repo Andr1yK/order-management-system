@@ -94,8 +94,8 @@ Each service follows a layered architecture:
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/ecommerce-microservices.git
-   cd ecommerce-microservices
+   git clone https://github.com/andr1yk/order-management-system.git
+   cd order-management-system
    ```
 
 2. Start the application with Docker Compose
